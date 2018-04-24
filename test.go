@@ -13,14 +13,14 @@ type ResultObj struct {
 }
 
 type Subject struct {
-	Id     string `json:"id"`
-	Title  string `json:"title"`
-	Cover  string `json:"cover"`
-	Url    string `json:"url"`
+	Id     string  `json:"id"`
+	Title  string  `json:"title"`
+	Cover  string  `json:"cover"`
+	Url    string  `json:"url"`
 	Rating float32 `json:"rating"`
 	Star   float32 `json:"star"`
-	Type   string `json:"type"`
-	Status string `json:"status"`
+	Type   string  `json:"type"`
+	Status string  `json:"status"`
 }
 
 type Data struct {

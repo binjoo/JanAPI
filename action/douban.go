@@ -1,6 +1,8 @@
 package action
 
 import (
+	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -106,6 +108,7 @@ func getDoubanData(ptype string, count string, start string, status string) stri
 	req, _ := http.NewRequest("GET", u.String(), nil)
 	req.Header.Set("User-Agent", "com.douban.frodo/5.24.0(132)")
 	req.Header.Set("Host", "frodo.douban.com")
+	req.Header.Set("Accept-Encoding", "gzip")
 	res, _ := client.Do(req)
 	defer res.Body.Close()
 	if res.StatusCode == 200 {
@@ -117,9 +120,18 @@ func getDoubanData(ptype string, count string, start string, status string) stri
 
 func handleDoubanData(content string) string {
 	var data Data
+	// 处理gzip压缩数据
+	buf := bytes.NewBuffer([]byte(content))
+	reader, err := gzip.NewReader(buf)
+	if err != nil {
+		fmt.Println("error:", err)
+		return ""
+	}
+	dec := json.NewDecoder(reader)
 
 	result := ResultObj{}
-	err := json.Unmarshal([]byte(content), &data)
+	//err = json.Unmarshal([]byte(content), &data)
+	err = dec.Decode(&data)
 	if err != nil {
 		fmt.Println("error:", err)
 		return ""

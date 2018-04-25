@@ -6,12 +6,15 @@ import (
 	"github.com/gorilla/mux"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
-const DOUBAN_API_URL string = "https://frodo.douban.com/api/v2/user/%s/interests?apikey=%s&type=%s&status=%s&count=%s&start=%s"
+const DOUBAN_API_URL string = "https://frodo.douban.com/api/v2/user/%s/interests?apikey=%s&type=%s&status=%s&count=%s&start=%s&_sig=%s&_ts=%s"
 const DOUBAN_API_CODE string = "0dad551ec0f84ed02907ff5c42e8ec70"
 const DOUBAN_API_UID string = "2539792"
+const DOUBAN_API_SIG string = "Dcu02wdHVuAHjQjV6mr5ZVduSQg=" //签名
+const DOUBAN_API_TS string = "1524554244"                    //签名时间
 
 var douban_types = []string{"app", "book", "game", "movie", "music"}
 
@@ -96,9 +99,13 @@ func Douban(w http.ResponseWriter, r *http.Request) {
 
 func getDoubanData(ptype string, count string, start string, status string) string {
 	client := &http.Client{}
-	url := fmt.Sprintf(DOUBAN_API_URL, DOUBAN_API_UID, DOUBAN_API_CODE, ptype, status, count, start)
-	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Set("User-Agent", "com.douban.frodo/5.22.0(129)")
+	urls := fmt.Sprintf(DOUBAN_API_URL, DOUBAN_API_UID, DOUBAN_API_CODE, ptype, status, count, start, DOUBAN_API_SIG, DOUBAN_API_TS)
+	u, _ := url.Parse(urls)
+	q := u.Query()
+	u.RawQuery = q.Encode() //转义
+	req, _ := http.NewRequest("GET", u.String(), nil)
+	req.Header.Set("User-Agent", "com.douban.frodo/5.24.0(132)")
+	req.Header.Set("Host", "frodo.douban.com")
 	res, _ := client.Do(req)
 	defer res.Body.Close()
 	if res.StatusCode == 200 {
@@ -110,10 +117,11 @@ func getDoubanData(ptype string, count string, start string, status string) stri
 
 func handleDoubanData(content string) string {
 	var data Data
+
 	result := ResultObj{}
 	err := json.Unmarshal([]byte(content), &data)
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Println("error:", err)
 		return ""
 	}
 

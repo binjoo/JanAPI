@@ -64,6 +64,7 @@ type Data struct {
 
 func Douban(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
+	// 获得路由参数type值
 	ptype := vars["type"]
 	conn := true
 	for _, douban_type := range douban_types {
@@ -78,16 +79,19 @@ func Douban(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// 获得地址栏参数start的值
 	start := r.FormValue("start")
 	if start == "" {
 		start = "0"
 	}
 
+	// 获得地址栏参数count的值
 	count := r.FormValue("count")
 	if count == "" {
 		count = "10"
 	}
 
+	// 获得地址栏参数status的值
 	status := r.FormValue("status")
 
 	result := getDoubanData(ptype, count, start, status)
@@ -101,6 +105,7 @@ func Douban(w http.ResponseWriter, r *http.Request) {
 
 func getDoubanData(ptype string, count string, start string, status string) string {
 	client := &http.Client{}
+	//url占位符赋值
 	urls := fmt.Sprintf(DOUBAN_API_URL, DOUBAN_API_UID, DOUBAN_API_CODE, ptype, status, count, start, DOUBAN_API_SIG, DOUBAN_API_TS)
 	u, _ := url.Parse(urls)
 	q := u.Query()
@@ -108,6 +113,7 @@ func getDoubanData(ptype string, count string, start string, status string) stri
 	req, _ := http.NewRequest("GET", u.String(), nil)
 	req.Header.Set("User-Agent", "com.douban.frodo/5.24.0(132)")
 	req.Header.Set("Host", "frodo.douban.com")
+	//请求头加入gzip压缩请求
 	req.Header.Set("Accept-Encoding", "gzip")
 	res, _ := client.Do(req)
 	defer res.Body.Close()
